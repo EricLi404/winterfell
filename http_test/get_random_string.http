@@ -1,0 +1,22 @@
+GET {{host}}/random?salt
+
+
+> {%
+client.test("t1", function() {
+  client.assert(response.status === 400, "status no pass");
+});
+%}
+
+###
+
+GET {{host}}/random?salt=233
+
+> {%
+client.test("t1", function() {
+  client.assert(response.status === 200, "status no pass");
+  client.assert(response.body.length === 33, "body no pass");
+});
+%}
+
+
+###
