@@ -1,4 +1,4 @@
-GET {{host}}/random?salt
+GET {{host}}/v1/random?salt
 
 
 > {%
@@ -9,7 +9,7 @@ client.test("t1", function() {
 
 ###
 
-GET {{host}}/random?salt=233
+GET {{host}}/v1/random?salt=233
 
 > {%
 client.test("t1", function() {
