@@ -2,7 +2,7 @@ GET {{host}}/v1/random?salt
 
 
 > {%
-client.test("t1", function() {
+client.test("test without salt", function() {
   client.assert(response.status === 400, "status no pass");
 });
 %}
@@ -12,7 +12,7 @@ client.test("t1", function() {
 GET {{host}}/v1/random?salt=233
 
 > {%
-client.test("t1", function() {
+client.test("test with salt", function() {
   client.assert(response.status === 200, "status no pass");
   client.assert(response.body.length === 33, "body no pass");
 });

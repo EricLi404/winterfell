@@ -5,7 +5,7 @@ Content-Type: application/x-www-form-urlencoded
 info=aGVsbG8gYmFzZTY0
 
 > {%
-client.test("t1", function() {
+client.test("base64 decode test", function() {
   client.assert(response.status === 200, "status no pass");
 });
 %}

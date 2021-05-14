@@ -2,7 +2,7 @@ GET {{host}}/test
 
 
 > {%
-client.test("t1", function() {
+client.test("hello world", function() {
   client.assert(response.status === 200, "status no pass");
 });
 %}
