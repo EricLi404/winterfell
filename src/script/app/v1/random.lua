@@ -6,7 +6,7 @@
 local args = ngx.req.get_uri_args()
 
 if not args.salt or (type(args.salt) == "string" and #args.salt == 0) then
-    ngx.exit(400)
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
 end 
 
 local resp_string = ngx.md5(ngx.time() .. args.salt)
