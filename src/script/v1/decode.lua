@@ -5,13 +5,32 @@
 ---
 local json = require "cjson"
 
-ngx.req.read_body()
+--TODO 提取为公共函数，get_args_post_or_uri()
+local method = ngx.req.get_method()
+local args
+local err
+if method == 'POST' then
+    -- post body_data 需要先read
+    ngx.req.read_body()
+    args, err = ngx.req.get_post_args()
+elseif method == 'GET' then
+    args = ngx.req.get_uri_args()
+else
+    err = "bad request method"
+end
 
-local args = ngx.req.get_post_args()
-if not args or not args.info then
-    ngx.log(ngx.ERR,"l1")
+if err then
+    ngx.log(ngx.ERR, "failed to decode post args: ", err)
     ngx.exit(ngx.HTTP_BAD_REQUEST)
-end 
+end
+if not args then
+    ngx.say("failed to get post args")
+    return
+end
+if not args.info then
+    ngx.say("failed to get post args: ", "args.info is nil")
+    return
+end
 
 local ip = ngx.var.remote_addr
 local ua = ngx.req.get_headers()['user-agent'] or ''
