@@ -10,15 +10,20 @@
 
 ### build docker
 ```shell
-docker build -t winterfell:1.01 .
+docker build -t winterfell:1.0 .
 ```
 
 ### run docker 
 ```shell
-docker run --name wf -d -v $PWD/src:/opt/winterfell -p 8189:80 winterfell:1.01
+docker run --name wf -d -v $PWD/src:/opt/winterfell -v /tmp/wf_logs:/logs -p 8189:80 winterfell:1.0
 ```
 
 ### enter docker 
 ```shell
 docker exec -it wf /bin/sh
+```
+
+### restart docker
+```shell
+docker restart wf 
 ```
