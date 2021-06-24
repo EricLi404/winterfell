@@ -30,6 +30,9 @@ rtn.post_args = post_args
 rtn.method = method
 rtn.headers = headers
 rtn.body = body_data
+rtn.host = ngx.var.host
+rtn.hostname = ngx.var.hostname
+rtn.uri = ngx.var.uri
 
 ngx.say(json.encode(rtn))
 
