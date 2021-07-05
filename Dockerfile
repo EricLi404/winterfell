@@ -1,7 +1,7 @@
 FROM centos:8
 MAINTAINER EricLi404 <ericli404@hotmail.com>
 
-RUN yum install wget pcre-devel openssl-devel gcc curl make perl -y
+RUN yum install wget pcre-devel openssl-devel gcc curl make perl redis -y
 
 WORKDIR /
 
