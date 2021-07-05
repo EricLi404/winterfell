@@ -6,7 +6,7 @@
 - [ngx_cache_purge-2.3](https://github.com/FRiCKLE/ngx_cache_purge/archive/2.3.tar.gz)
 - [nginx_upstream_check_module-0.3.0](https://github.com/yaoweibin/nginx_upstream_check_module/archive/v0.3.0.tar.gz)
 
-## 指令
+## Docker 指令
 
 ### build docker
 ```shell
