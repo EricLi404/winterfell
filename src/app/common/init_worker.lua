@@ -1,1 +1,1 @@
-require("app/lru/lru")
+require("dao/lru/common")
