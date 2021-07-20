@@ -86,7 +86,6 @@ thanks to [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 
 
-
 ## wrk
 
 ### centos install wrk
@@ -155,10 +154,63 @@ Transfer/sec:      8.60MB
 
 ```
 
+## 组件及引用说明
 
+### openresty
 
-## 包依赖
-- [openresty-1.19.3.1](https://openresty.org/download/openresty-1.19.3.1.tar.gz)
+在 [openresty官网 #Lastest release](https://openresty.org/en/download.html#lastest-release) 下载
+
+### lua-protobuf
+目前在项目中已经被编译为 `/src/lualib/pb.so`
+
+负责 对 pb msg 进行 encode、decode，使用说明见：[starwing/lua-protobuf](https://github.com/starwing/lua-protobuf)
+
+### xxx.pb
+proto 定义的二进制格式，使用 protoc 生成。
+
+e.g. `protoc gdt_rta.proto  -o gdt.pb`
+
+### redis 连接池实现
+项目中的 `/src/lualib/redis_util.lua` 是一个redis连接池的封装。
+基于 [moonbingbing/openresty-best-practices 中的「Redis 接口的二次封装」实现](https://github.com/moonbingbing/openresty-best-practices/blob/master/redis/out_package.md)
+
+### luajit
+由于 lua 对于大 table 处理的性能较差， 压测数据生成过程中可能会需要用到 luajit
+```shell
+git clone https://github.com/openresty/luajit2.git
+cd luajit2
+make && sudo make install
+```
+
+### mpx/lua-cjson
+压测脚本可能需要依赖 cjson
+
+Github: [https://github.com/mpx/lua-cjson/](https://github.com/mpx/lua-cjson/)
+```shell
+yum install wget pcre-devel openssl-devel gcc curl make perl -y
+yum install lua-devel -y
+wget https://www.kyne.com.au/~mark/software/download/lua-cjson-2.1.0.tar.gz
+tar -zxvf lua-cjson-2.1.0.tar.gz
+cd lua-cjson-2.1.0
+gmake
+```
+当前目录下的 `cjson.so` 即为所需 c lib 文件
+
+###  redis or redis-cli
+
+```shell
+wget http://download.redis.io/releases/redis-5.0.3.tar.gz
+tar -zxvf redis-5.0.3.tar.gz
+cd redis-5.0.3
+# 安装 redis-cli
+make redis-cli  
+# or 安装 redis 服务
+make
+```
+此时 bin 文件就在 `./src` 中
+
+## tar包依赖
+- [openresty-1.19.3.2](https://openresty.org/download/openresty-1.19.3.2.tar.gz)
 - [ngx_cache_purge-2.3](https://github.com/FRiCKLE/ngx_cache_purge/archive/2.3.tar.gz)
 - [nginx_upstream_check_module-0.3.0](https://github.com/yaoweibin/nginx_upstream_check_module/archive/v0.3.0.tar.gz)
 
