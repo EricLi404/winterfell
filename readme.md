@@ -243,7 +243,7 @@ make
 ```
 此时 bin 文件就在 `./src` 中
 
-## tar包依赖
+## tar 包依赖
 - [openresty-1.19.3.2](https://openresty.org/download/openresty-1.19.3.2.tar.gz)
 - [ngx_cache_purge-2.3](https://github.com/FRiCKLE/ngx_cache_purge/archive/2.3.tar.gz)
 - [nginx_upstream_check_module-0.3.0](https://github.com/yaoweibin/nginx_upstream_check_module/archive/v0.3.0.tar.gz)
