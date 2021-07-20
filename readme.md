@@ -22,7 +22,7 @@
       * [luajit](#luajit)
       * [mpx/lua-cjson](#mpxlua-cjson)
       * [redis or redis-cli](#redis-or-redis-cli)
-   * [tar包依赖](#tar包依赖)
+   * [tar 包依赖](#tar-包依赖)
    * [Docker 指令](#docker-指令)
       * [all in one](#all-in-one)
       * [build docker](#build-docker)
@@ -30,7 +30,7 @@
       * [enter docker](#enter-docker)
       * [restart docker](#restart-docker)
 
-<!-- Added by: runner, at: Tue Jul 20 11:48:08 UTC 2021 -->
+<!-- Added by: runner, at: Tue Jul 20 11:52:47 UTC 2021 -->
 
 <!--te-->
 
