@@ -5,6 +5,12 @@
 * [Winterfell](#winterfell)
    * [项目目录结构](#项目目录结构)
       * [基础目录结构](#基础目录结构)
+      * [功能介绍（对应目录src/app/{{xxx}})](#功能介绍对应目录srcappxxx)
+         * [base](#base)
+         * [compute](#compute)
+         * [lru](#lru)
+         * [memcached](#memcached)
+         * [redis](#redis)
    * [组件及引用说明](#组件及引用说明)
       * [openresty](#openresty)
       * [lua-protobuf](#lua-protobuf)
@@ -30,7 +36,7 @@
       * [enter docker](#enter-docker)
       * [restart docker](#restart-docker)
 
-<!-- Added by: runner, at: Tue Jul 20 12:06:12 UTC 2021 -->
+<!-- Added by: runner, at: Wed Jul 21 02:57:16 UTC 2021 -->
 
 <!--te-->
 
