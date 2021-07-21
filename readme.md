@@ -58,6 +58,30 @@
 
 ```
 
+### 功能介绍（对应目录`src/app/{{xxx}}`)
+
+#### base
+基础的 http get、post 演示，args、header 解析
+
+#### compute
+实现了一个计算器，主要为了演示 nginx.conf 的根据 uri 来选择使用的文件。
+```
+location ~ ^/compute/([-_a-zA-Z0-9/]+) {
+   set $path $1;
+   content_by_lua_file /opt/winterfell/app/compute/$path.lua;
+}
+```
+
+#### lru
+演示 resty.lrucache 的使用。
+
+#### memcached
+- `server`: 实现了基于 TCP 的 memcached 服务端(简版，只有 get、set)
+- `client`：演示 resty.memcached 的使用
+
+#### redis
+演示了 redis 连接池的使用
+
 
 ## 组件及引用说明
 
@@ -171,39 +195,11 @@ jobs:
 
 ```
 同时在 `readme.md` 中添加 如下标记：
+!!! `t s` 和 `t e` 中间应该是不带 空格 的，此处加空格是为了转义
 ```
-<!--ts-->
-* [Winterfell](#winterfell)
-   * [项目目录结构](#项目目录结构)
-      * [基础目录结构](#基础目录结构)
-   * [组件及引用说明](#组件及引用说明)
-      * [openresty](#openresty)
-      * [lua-protobuf](#lua-protobuf)
-      * [xxx.pb](#xxxpb)
-      * [redis 连接池实现](#redis-连接池实现)
-      * [luajit](#luajit)
-      * [mpx/lua-cjson](#mpxlua-cjson)
-      * [redis or redis-cli](#redis-or-redis-cli)
-      * [rd_tools](#rd_tools)
-      * [markdown_gen_toc/gh-md-toc.sh](#markdown_gen_tocgh-md-tocsh)
-         * [为 markdown 文件 生成 toc](#为-markdown-文件-生成-toc)
-         * [使用 GitHub workflows 自动为 readme 添加 toc](#使用-github-workflows-自动为-readme-添加-toc)
-   * [tar 包依赖](#tar-包依赖)
-   * [wrk](#wrk)
-      * [centos install wrk](#centos-install-wrk)
-      * [wrk --help](#wrk---help)
-      * [example wrk cmd](#example-wrk-cmd)
-      * [wrk 测试报告解读](#wrk-测试报告解读)
-   * [Docker 指令](#docker-指令)
-      * [all in one](#all-in-one)
-      * [build docker](#build-docker)
-      * [run docker](#run-docker)
-      * [enter docker](#enter-docker)
-      * [restart docker](#restart-docker)
+<!--t s-->
 
-<!-- Added by: runner, at: Tue Jul 20 12:06:12 UTC 2021 -->
-
-<!--te-->
+<!--t e-->
 ```
 push 代码到 GitHub 后，如果 `readme.md` 内容有改动，则会出发 workflow，自动为`readme.md`生成 toc。
 

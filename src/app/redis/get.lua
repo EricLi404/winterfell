@@ -36,4 +36,17 @@ if err then
     return
 end
 
-ngx.say("key: ", args.key, "  value: ", res)
+-- ngx.say / ngx.print 可以直接返回 list（table不行），会自动拼接为一个字符串
+local r_list = {
+    "key: ",
+    args.key,
+    "  value: ",
+    res
+}
+ngx.say(r_list)
+
+-- 或者直接传多个
+--ngx.say("key: ", args.key, "  value: ", res)
+
+-- 最好不要进行 字符串拼接，对性能有影响
+--ngx.say("key: " .. args.key .. "  value: " .. res)
