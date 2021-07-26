@@ -1,7 +1,10 @@
 FROM centos:7.3.1611
 MAINTAINER EricLi404 <ericli404@hotmail.com>
 
-RUN yum install wget pcre-devel openssl-devel gcc curl make perl redis -y
+RUN set -xe \
+    && yum install epel-release -y \
+    && yum update -y \
+    && yum install wget pcre-devel openssl-devel gcc curl make perl redis -y
 
 WORKDIR /
 
@@ -13,13 +16,15 @@ COPY tests rd_tools /opt/winterfell_others/
 WORKDIR /opt/winterfell_build/ 
 RUN set -xe \
     && mkdir /logs \
+    && tar -zxvf zlog-1.2.15.tar.gz \
+    && cd zlog-1.2.15 && make && make install \
+    && echo "/usr/local/lib" >> /etc/ld.so.conf && ldconfig \
+    && cd /opt/winterfell_build/ \
     && tar -zxvf openresty-1.19.3.2.tar.gz \
-    && tar -zxvf ngx_cache_purge-2.3.tar.gz -C openresty-1.19.3.2/bundle \
-    && tar -xzvf nginx_upstream_check_module_v0.3.0.tar.gz -C /opt/winterfell_build/openresty-1.19.3.2/bundle \
     && cd openresty-1.19.3.2/bundle/LuaJIT-2.1-20201027 \
     && make && make install \
     && cd /opt/winterfell_build/openresty-1.19.3.2/  \
-    && ./configure --prefix=/usr/winterfell --with-http_stub_status_module --with-http_ssl_module --with-http_realip_module --with-pcre --add-module=./bundle/ngx_cache_purge-2.3/ --add-module=./bundle/nginx_upstream_check_module-0.3.0/ -j2 \
+    && ./configure --prefix=/usr/winterfell --with-http_stub_status_module --with-http_ssl_module --with-http_realip_module --with-pcre -j2 \
     && make && make install \
     && cd /logs && rm -rf /opt/winterfell_build
  
