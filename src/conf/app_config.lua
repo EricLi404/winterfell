@@ -17,4 +17,17 @@ function _M.code_msg()
     return code_msg
 end
 
+function _M.redis_hget()
+    local redis_hget = {
+        redis_opts = {
+            host = '127.0.0.1',
+            port = 6379,
+            pool_size = 512,
+            read_timeout = 55
+        },
+        pd_file_path = "/opt/needle/proto/pb/gdt_rta.pb"
+    }
+    return redis_hget
+end
+
 return _M
