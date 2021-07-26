@@ -1,4 +1,4 @@
-FROM centos:8
+FROM centos:7.3.1611
 MAINTAINER EricLi404 <ericli404@hotmail.com>
 
 RUN yum install wget pcre-devel openssl-devel gcc curl make perl redis -y
@@ -8,6 +8,7 @@ WORKDIR /
 COPY deps/ori/* /opt/winterfell_build/
 COPY cmd/start.sh /opt/winterfell_cmd/
 COPY src /opt/winterfell
+COPY tests rd_tools /opt/winterfell_others/
 
 WORKDIR /opt/winterfell_build/ 
 RUN set -xe \
