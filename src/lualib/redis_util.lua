@@ -252,10 +252,7 @@ local function do_command(self, cmd, ...)
     end
 
     -- put it into the connection pool
-    local ok, err = _set_keepalive_mod(self, redis)
-    if not ok or err then
-        return nil, err
-    end
+    _set_keepalive_mod(self, redis)
 
     return result, nil
 end
