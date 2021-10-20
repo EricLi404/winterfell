@@ -1,5 +1,6 @@
 local redis_c = require "resty.redis"
 
+
 local ok, new_tab = pcall(require, "table.new")
 if not ok or type(new_tab) ~= "function" then
     new_tab = function(narr, nrec)
@@ -8,7 +9,7 @@ if not ok or type(new_tab) ~= "function" then
 end
 
 local _M = new_tab(0, 155)
-_M._VERSION = '0.01'
+_M._VERSION = '0.02'
 
 local commands = {
     "append", "auth", "bgrewriteaof",
@@ -91,93 +92,10 @@ end
 
 -- change connect address as you need
 function _M.connect_mod(self, redis)
-    redis:set_timeout(self.timeout)
-    return redis:connect("127.0.0.1", 6379)
-end
+    redis:set_timeouts(self.opts.connect_timeout, self.opts.send_timeout, self.opts.read_timeout)
 
-function _M.set_keepalive_mod(redis)
-    -- put it into the connection pool of size 100, with 60 seconds max idle time
-    return redis:set_keepalive(60000, 1000)
-end
-
-function _M.init_pipeline(self)
-    self._reqs = {}
-end
-
-function _M.commit_pipeline(self)
-    local reqs = self._reqs
-
-    if nil == reqs or 0 == #reqs then
-        return {}, "no pipeline"
-    else
-        self._reqs = nil
-    end
-
-    local redis, err = redis_c:new()
-    if not redis then
-        return nil, err
-    end
-
-    local ok, err = self:connect_mod(redis)
-    if not ok then
-        return {}, err
-    end
-
-    redis:init_pipeline()
-    for _, vals in ipairs(reqs) do
-        local fun = redis[vals[1]]
-        table.remove(vals, 1)
-
-        fun(redis, unpack(vals))
-    end
-
-    local results, err = redis:commit_pipeline()
-    if not results or err then
-        return {}, err
-    end
-
-    if is_redis_null(results) then
-        results = {}
-        ngx.log(ngx.WARN, "is null")
-    end
-    -- table.remove (results , 1)
-
-    self.set_keepalive_mod(redis)
-
-    for i, value in ipairs(results) do
-        if is_redis_null(value) then
-            results[i] = nil
-        end
-    end
-
-    return results, err
-end
-
-function _M.subscribe(self, channel)
-    local redis, err = redis_c:new()
-    if not redis then
-        return nil, err
-    end
-
-    local ok, err = self:connect_mod(redis)
-    if not ok or err then
-        return nil, err
-    end
-
-    local res, err = redis:subscribe(channel)
-    if not res then
-        return nil, err
-    end
-
-    res, err = redis:read_reply()
-    if not res then
-        return nil, err
-    end
-
-    redis:unsubscribe(channel)
-    self.set_keepalive_mod(redis)
-
-    return res, err
+    -- set redis host,port
+    return redis:connect(self.opts.host, self.opts.port)
 end
 
 local function do_command(self, cmd, ...)
@@ -207,27 +125,96 @@ local function do_command(self, cmd, ...)
         result = nil
     end
 
-    self.set_keepalive_mod(redis)
+    redis:set_keepalive_mod(self.opts.keepalive, self.opts.pool_size)
 
     return result, err
 end
 
-function _M.new(self, opts)
-    opts = opts or {}
-    local timeout = (opts.timeout and opts.timeout * 1000) or 1000
-    local db_index = opts.db_index or 0
+local function _parse_opts(opts)
+    local d_opts = {
+        connect_timeout = 3000, --3s
+        send_timeout = 200, --200ms
+        read_timeout = 200, --200ms
+        host = '127.0.0.1',
+        port = 6379,
+        db_index = 0,
+        password = nil,
+        keepalive = 60000, --60s
+        pool_size = 100
+    }
 
+    for k, v in pairs(opts) do
+        if k == "host" then
+            if type(v) ~= "string" then
+                return nil, '"host" must be a string'
+            end
+            d_opts.host = v
+        elseif k == "port" then
+            if type(v) ~= "number" then
+                return nil, '"port" must be a number'
+            end
+            if v < 0 or v > 65535 then
+                return nil, '"port" out of range 0~65535'
+            end
+            d_opts.port = v
+        elseif k == "password" then
+            if type(v) ~= "string" then
+                return nil, '"password" must be a string'
+            end
+            d_opts.password = v
+        elseif k == "db_index" then
+            if type(v) ~= "number" then
+                return nil, '"db_index" must be a number'
+            end
+            if v < 0 then
+                return nil, '"db_index" must be >= 0'
+            end
+            d_opts.db_index = v
+        elseif k == "connect_timeout" then
+            if type(v) ~= "number" or v < 0 then
+                return nil, 'invalid "connect_timeout"'
+            end
+            d_opts.connect_timeout = v
+        elseif k == "send_timeout" then
+            if type(v) ~= "number" or v < 0 then
+                return nil, 'invalid "send_timeout"'
+            end
+            d_opts.send_timeout = v
+        elseif k == "read_timeout" then
+            if type(v) ~= "number" or v < 0 then
+                return nil, 'invalid "read_timeout"'
+            end
+            d_opts.read_timeout = v
+        elseif k == "keepalive" then
+            if type(v) ~= "number" or v < 0 then
+                return nil, 'invalid "keepalive"'
+            end
+            d_opts.keepalive = v
+        elseif k == "pool_size" then
+            if type(v) ~= "number" or v < 0 then
+                return nil, 'invalid "pool_size"'
+            end
+            d_opts.pool_size = v
+        elseif k == "commands" then
+            if type(v) ~= "table" or #v < 1 then
+                return nil, 'invalid "commands"'
+            end
+            commands = v
+        end
+    end
+    return d_opts
+end
+
+function _M.new(self, opts)
+    local n_opts = _parse_opts(opts)
     for i = 1, #commands do
         local cmd = commands[i]
         _M[cmd] = function(self, ...)
             return do_command(self, cmd, ...)
         end
     end
-
-    return setmetatable({
-        timeout = timeout,
-        db_index = db_index,
-        _reqs = nil }, mt)
+    ngx.socket.tcp()
+    return setmetatable({ opts = n_opts, _reqs = nil }, mt)
 end
 
 return _M

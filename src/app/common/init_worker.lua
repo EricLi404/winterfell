@@ -4,3 +4,60 @@ prometheus = require("lualib.prometheus.prometheus").init("prometheus_metrics")
 metric_status = prometheus:histogram("metric_status", "HTTP request latency", { "api", "status" },
         { 0.003, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06, 0.065, 0.07, 0.08, 0.1, 0.5, 1 })
 metric_error_code = prometheus:counter("metric_error_code", "Number of api error", { "api", "error_code" })
+--
+--local timer_at = ngx.timer.at
+--
+--local log = ngx.log
+--local ERR = ngx.ERR
+--
+--local cjson = require "cjson.safe"
+--local redis = require "resty.redis"
+--
+--
+--local function cremod_qe_map()
+--    local ok, err = timer_at(10, cremod_qe_map)
+--    if not ok then
+--        log(ERR, "failed to create cremod_qe_map timer: ", err)
+--        return
+--    end
+--
+--    local red = redis:new()
+--    red:set_timeout(1000)
+--
+--    --local ip, port = get_servers("redis_word2id")
+--    --if not ip then
+--    --    log(ERR, "failed to get_servers redis_word2id")
+--    --    return
+--    --end
+--
+--    local ip, port = "127.0.0.1", 6379
+--
+--    local ok, err = red:connect(ip, port)
+--    if not ok then
+--        log(ERR, "failed to connect cremod_qe_map: ", err)
+--        return
+--    end
+--
+--    local results, err = red:hgetall("cx_cremod_qe_conf")
+--    if not results then
+--        log(ERR, "failed to hget cx_cremod_qe_conf : ", err)
+--        return
+--    end
+--
+--    ngx.log(ngx.ERR, cjson.encode(results))
+--
+--    -- if the key doesn't exist, we need delete the key
+--    --local resp = results[2]
+--    --ngx.shared.crs_shm:set("DaDaBusy", cjson.encode(array_to_hash(resp)))
+--    local ok, err = red:close()
+--    if not ok then
+--        log(ERR, "failed to cx_cremod_qe_conf close: ", err)
+--    end
+--
+--end
+--
+--
+--local ok,err = timer_at(1, cremod_qe_map)
+--if not ok then
+--    log(ERR, "failed to create cremod_qe_map timer: ", err)
+--end

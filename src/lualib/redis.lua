@@ -16,48 +16,45 @@ local tonumber = tonumber
 local tostring = tostring
 local rawget = rawget
 local select = select
+local cjson = require("cjson")
 --local error = error
 
 
 local ok, new_tab = pcall(require, "table.new")
 if not ok or type(new_tab) ~= "function" then
-    new_tab = function (narr, nrec) return {} end
+    new_tab = function(narr, nrec)
+        return {}
+    end
 end
-
 
 local _M = new_tab(0, 55)
 
 _M._VERSION = '0.29'
 
-
 local common_cmds = {
-    "get",      "set",          "mget",     "mset",
-    "del",      "incr",         "decr",                 -- Strings
-    "llen",     "lindex",       "lpop",     "lpush",
-    "lrange",   "linsert",                              -- Lists
-    "hexists",  "hget",         "hset",     "hmget",
-    --[[ "hmset", ]]            "hdel",                 -- Hashes
-    "smembers", "sismember",    "sadd",     "srem",
-    "sdiff",    "sinter",       "sunion",               -- Sets
-    "zrange",   "zrangebyscore", "zrank",   "zadd",
-    "zrem",     "zincrby",                              -- Sorted Sets
-    "auth",     "eval",         "expire",   "script",
+    "get", "set", "mget", "mset",
+    "del", "incr", "decr", -- Strings
+    "llen", "lindex", "lpop", "lpush",
+    "lrange", "linsert", -- Lists
+    "hexists", "hget", "hset", "hmget",
+    --[[ "hmset", ]]            "hdel", -- Hashes
+    "smembers", "sismember", "sadd", "srem",
+    "sdiff", "sinter", "sunion", -- Sets
+    "zrange", "zrangebyscore", "zrank", "zadd",
+    "zrem", "zincrby", -- Sorted Sets
+    "auth", "eval", "expire", "script",
     "sort"                                              -- Others
 }
-
 
 local sub_commands = {
     "subscribe", "psubscribe"
 }
 
-
 local unsub_commands = {
     "unsubscribe", "punsubscribe"
 }
 
-
 local mt = { __index = _M }
-
 
 function _M.new(self)
     local sock, err = tcp()
@@ -73,7 +70,6 @@ function _M.new(self)
     }, mt)
 end
 
-
 function _M.set_timeout(self, timeout)
     local sock = rawget(self, "_sock")
     if not sock then
@@ -84,7 +80,6 @@ function _M.set_timeout(self, timeout)
     sock:settimeout(timeout)
 end
 
-
 function _M.set_timeouts(self, connect_timeout, send_timeout, read_timeout)
     local sock = rawget(self, "_sock")
     if not sock then
@@ -94,7 +89,6 @@ function _M.set_timeouts(self, connect_timeout, send_timeout, read_timeout)
 
     sock:settimeouts(connect_timeout, send_timeout, read_timeout)
 end
-
 
 function _M.connect(self, host, port_or_opts, opts)
     local sock = rawget(self, "_sock")
@@ -172,7 +166,6 @@ function _M.connect(self, host, port_or_opts, opts)
     return ok, err
 end
 
-
 function _M.set_keepalive(self, ...)
     local sock = rawget(self, "_sock")
     if not sock then
@@ -186,7 +179,6 @@ function _M.set_keepalive(self, ...)
     return sock:setkeepalive(...)
 end
 
-
 function _M.get_reused_times(self)
     local sock = rawget(self, "_sock")
     if not sock then
@@ -195,7 +187,6 @@ function _M.get_reused_times(self)
 
     return sock:getreusedtimes()
 end
-
 
 local function close(self)
     local sock = rawget(self, "_sock")
@@ -206,7 +197,6 @@ local function close(self)
     return sock:close()
 end
 _M.close = close
-
 
 local function _read_reply(self, sock)
     local line, err = sock:receive()
@@ -219,7 +209,8 @@ local function _read_reply(self, sock)
 
     local prefix = byte(line)
 
-    if prefix == 36 then    -- char '$'
+    if prefix == 36 then
+        -- char '$'
         -- print("bulk reply")
 
         local size = tonumber(sub(line, 2))
@@ -245,12 +236,14 @@ local function _read_reply(self, sock)
 
         return data
 
-    elseif prefix == 43 then    -- char '+'
+    elseif prefix == 43 then
+        -- char '+'
         -- print("status reply")
 
         return sub(line, 2)
 
-    elseif prefix == 42 then -- char '*'
+    elseif prefix == 42 then
+        -- char '*'
         local n = tonumber(sub(line, 2))
 
         -- print("multi-bulk reply: ", n)
@@ -272,27 +265,28 @@ local function _read_reply(self, sock)
             else
                 -- be a valid redis error value
                 nvals = nvals + 1
-                vals[nvals] = {false, err}
+                vals[nvals] = { false, err }
             end
         end
 
         return vals
 
-    elseif prefix == 58 then    -- char ':'
+    elseif prefix == 58 then
+        -- char ':'
         -- print("integer reply")
         return tonumber(sub(line, 2))
 
-    elseif prefix == 45 then    -- char '-'
+    elseif prefix == 45 then
+        -- char '-'
         -- print("error reply: ", n)
 
-        return false, sub(line, 2)
+        return false, line
 
     else
         -- when `line` is an empty string, `prefix` will be equal to nil.
         return nil, "unknown prefix: \"" .. tostring(prefix) .. "\""
     end
 end
-
 
 local function _gen_req(args)
     local nargs = #args
@@ -321,15 +315,13 @@ local function _gen_req(args)
     return req
 end
 
-
 local function _check_msg(self, res)
     return rawget(self, "_subscribed") and
             type(res) == "table" and (res[1] == "message" or res[1] == "pmessage")
 end
 
-
 local function _do_cmd(self, ...)
-    local args = {...}
+    local args = { ... }
 
     local sock = rawget(self, "_sock")
     if not sock then
@@ -361,9 +353,12 @@ local function _do_cmd(self, ...)
         res, err = _read_reply(self, sock)
     end
 
+    if err then
+        ngx.log(ngx.ERR, " req: ", cjson.encode(req), " resp: ", err)
+    end
+
     return res, err
 end
-
 
 local function _check_unsubscribed(self, res)
     if type(res) == "table"
@@ -374,8 +369,7 @@ local function _check_unsubscribed(self, res)
         local buffered_msg = rawget(self, "_buffered_msg")
         if buffered_msg then
             -- remove messages of unsubscribed channel
-            local msg_type =
-            (res[1] == "punsubscribe") and "pmessage" or "message"
+            local msg_type = (res[1] == "punsubscribe") and "pmessage" or "message"
             local j = 1
             for _, msg in ipairs(buffered_msg) do
                 if msg[1] == msg_type and msg[2] ~= res[2] then
@@ -402,7 +396,6 @@ local function _check_unsubscribed(self, res)
     end
 end
 
-
 local function _check_subscribed(self, res)
     if type(res) == "table"
             and (res[1] == "subscribe" or res[1] == "psubscribe")
@@ -415,7 +408,6 @@ local function _check_subscribed(self, res)
         end
     end
 end
-
 
 function _M.read_reply(self)
     local sock = rawget(self, "_sock")
@@ -445,16 +437,13 @@ function _M.read_reply(self)
     return res, err
 end
 
-
 for i = 1, #common_cmds do
     local cmd = common_cmds[i]
 
-    _M[cmd] =
-    function (self, ...)
+    _M[cmd] = function(self, ...)
         return _do_cmd(self, cmd, ...)
     end
 end
-
 
 local function handle_subscribe_result(self, cmd, nargs, res)
     local err
@@ -484,8 +473,7 @@ end
 for i = 1, #sub_commands do
     local cmd = sub_commands[i]
 
-    _M[cmd] =
-    function (self, ...)
+    _M[cmd] = function(self, ...)
         if not rawget(self, "_subscribed") then
             self._subscribed = true
         end
@@ -500,7 +488,6 @@ for i = 1, #sub_commands do
         return handle_subscribe_result(self, cmd, nargs, res)
     end
 end
-
 
 local function handle_unsubscribe_result(self, cmd, nargs, res)
     local err
@@ -537,8 +524,7 @@ end
 for i = 1, #unsub_commands do
     local cmd = unsub_commands[i]
 
-    _M[cmd] =
-    function (self, ...)
+    _M[cmd] = function(self, ...)
         -- assume all channels are unsubscribed by only one time
         if not rawget(self, "_subscribed") then
             return nil, "not subscribed"
@@ -554,7 +540,6 @@ for i = 1, #unsub_commands do
         return handle_unsubscribe_result(self, cmd, nargs, res)
     end
 end
-
 
 function _M.hmset(self, hashname, ...)
     if select('#', ...) == 1 then
@@ -581,16 +566,13 @@ function _M.hmset(self, hashname, ...)
     return _do_cmd(self, "hmset", hashname, ...)
 end
 
-
 function _M.init_pipeline(self, n)
     self._reqs = new_tab(n or 4, 0)
 end
 
-
 function _M.cancel_pipeline(self)
     self._reqs = nil
 end
-
 
 function _M.commit_pipeline(self)
     local reqs = rawget(self, "_reqs")
@@ -628,13 +610,12 @@ function _M.commit_pipeline(self)
         else
             -- be a valid redis error value
             nvals = nvals + 1
-            vals[nvals] = {false, err}
+            vals[nvals] = { false, err }
         end
     end
 
     return vals
 end
-
 
 function _M.array_to_hash(self, t)
     local n = #t
@@ -649,20 +630,17 @@ end
 
 -- this method is deperate since we already do lazy method generation.
 function _M.add_commands(...)
-    local cmds = {...}
+    local cmds = { ... }
     for i = 1, #cmds do
         local cmd = cmds[i]
-        _M[cmd] =
-        function (self, ...)
+        _M[cmd] = function(self, ...)
             return _do_cmd(self, cmd, ...)
         end
     end
 end
 
-
-setmetatable(_M, {__index = function(self, cmd)
-    local method =
-    function (self, ...)
+setmetatable(_M, { __index = function(self, cmd)
+    local method = function(self, ...)
         return _do_cmd(self, cmd, ...)
     end
 
@@ -670,7 +648,6 @@ setmetatable(_M, {__index = function(self, cmd)
     -- module table
     _M[cmd] = method
     return method
-end})
-
+end })
 
 return _M

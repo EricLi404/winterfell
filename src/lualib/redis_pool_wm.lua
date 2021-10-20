@@ -8,7 +8,7 @@ if not ok or type(new_tab) ~= "function" then
 end
 
 local _M = new_tab(0, 155)
-_M._VERSION = '0.03'
+_M._VERSION = '0.01'
 
 local commands = {
     "append", "auth", "bgrewriteaof",
@@ -92,12 +92,12 @@ end
 -- change connect address as you need
 function _M.connect_mod(self, redis)
     redis:set_timeout(self.timeout)
-    return redis:connect("127.0.0.1", 10026)
+    return redis:connect("127.0.0.1", 6379)
 end
 
 function _M.set_keepalive_mod(redis)
     -- put it into the connection pool of size 100, with 60 seconds max idle time
-    return redis:set_keepalive(60000, 512)
+    return redis:set_keepalive(60000, 1000)
 end
 
 function _M.init_pipeline(self)
@@ -214,7 +214,7 @@ end
 
 function _M.new(self, opts)
     opts = opts or {}
-    local timeout = 55
+    local timeout = (opts.timeout and opts.timeout * 1000) or 1000
     local db_index = opts.db_index or 0
 
     for i = 1, #commands do

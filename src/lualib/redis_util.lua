@@ -220,6 +220,38 @@ function _M.commit_pipeline(self)
 
     return results, err
 end
+--
+--function _M.exists_then_hget(self, key, field)
+--    local redis, err = _init_connect()
+--    if not redis or err then
+--        _debug_err("failed to init redis,reason::", err)
+--        return nil, nil, err
+--    end
+--
+--    -- exists
+--    local r_exists = redis['exists']
+--    local exists_result, err = r_exists(redis, key)
+--    if not exists_result or err then
+--        return nil, nil, err
+--    end
+--
+--    if type(exists_result) == 'number' and exists_result == 0 then
+--        _set_keepalive_mod(self, redis)
+--        return exists_result, nil, nil
+--    elseif type(exists_result) == 'number' and exists_result == 1 then
+--        -- hget
+--        local r_hget = redis['r_hget']
+--        local hget_result, err = r_hget(redis, key, field)
+--        if not hget_result or err then
+--            return exists_result, nil, err
+--        elseif _is_null(hget_result) then
+--            hget_result = nil
+--        end
+--        _set_keepalive_mod(self, redis)
+--        return exists_result, hget_result, err
+--    end
+--    return nil, nil, err
+--end
 
 -- common method
 local function do_command(self, cmd, ...)
